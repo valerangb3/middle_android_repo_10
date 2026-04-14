@@ -1,20 +1,28 @@
-package ru.yandex.buggyweatherapp.viewmodel
+package ru.yandex.buggyweatherapp.presentation.viewmodel
 
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import ru.yandex.buggyweatherapp.WeatherApplication
-import ru.yandex.buggyweatherapp.model.Location
-import ru.yandex.buggyweatherapp.model.WeatherData
-import ru.yandex.buggyweatherapp.repository.LocationRepository
-import ru.yandex.buggyweatherapp.repository.WeatherRepository
+import ru.yandex.buggyweatherapp.domain.model.Location
+import ru.yandex.buggyweatherapp.domain.model.WeatherData
+import ru.yandex.buggyweatherapp.data.repository.LocationRepositoryImpl
+import ru.yandex.buggyweatherapp.data.repository.WeatherRepositoryImpl
+import ru.yandex.buggyweatherapp.domain.model.WeatherResult
+import ru.yandex.buggyweatherapp.presentation.model.Content
+import ru.yandex.buggyweatherapp.presentation.model.Error
+import ru.yandex.buggyweatherapp.presentation.model.Idle
+import ru.yandex.buggyweatherapp.presentation.model.Loading
+import ru.yandex.buggyweatherapp.presentation.model.Result
 import ru.yandex.buggyweatherapp.utils.ImageLoader
 import java.util.Timer
 import java.util.TimerTask
@@ -25,19 +33,22 @@ class WeatherViewModel : ViewModel() {
     private lateinit var activityContext: Context
     
     
-    private val weatherRepository = WeatherRepository()
+    private val weatherRepository = WeatherRepositoryImpl()
     private val locationRepository by lazy { 
-        LocationRepository(activityContext)
+        LocationRepositoryImpl(activityContext)
     }
-    
-    
+
+    private val _state = MutableStateFlow<Result>(Idle)
+    val weatherState = _state.asStateFlow()
+
     val weatherData = MutableLiveData<WeatherData>()
     val currentLocation = MutableLiveData<Location>()
     val isLoading = MutableLiveData<Boolean>()
     val error = MutableLiveData<String>()
     val cityName = MutableLiveData<String>()
     
-    
+
+    //TODO зачем зедсь свой scope?
     private val coroutineScope = CoroutineScope(Dispatchers.Main + Job())
     
     
@@ -48,36 +59,49 @@ class WeatherViewModel : ViewModel() {
         this.activityContext = context
         fetchCurrentLocationWeather()
         
-        
+        //
         startAutoRefresh()
     }
     
     
     fun fetchCurrentLocationWeather() {
-        isLoading.value = true
-        error.value = null
+        _state.value = Loading
         
         locationRepository.getCurrentLocation { location ->
-            if (location != null) {
+            location?.let { location ->
                 currentLocation.value = location
-                
-                
+
+
                 val cityNameFromLocation = locationRepository.getCityNameFromLocation(location)
-                cityName.value = cityNameFromLocation
-                
+                cityName.value = cityNameFromLocation ?: ""
+
                 getWeatherForLocation(location)
-            } else {
-                isLoading.value = false
-                error.value = "Unable to get current location"
+                _state.update {  }
+                if (weatherState !is Content) {
+                    _state.value = Content(
+
+                    )
+                } else {
+                    _state.update {
+
+                    }
+                }
+            } ?: run {
+                _state.value = Error(message = "Unable to get current location")
             }
         }
     }
     
     fun getWeatherForLocation(location: Location) {
+        viewModelScope.launch {
+            _state.value = Loading
+            val weatherData = weatherRepository.getWeatherData(location)
+        }
         isLoading.value = true
         error.value = null
-        
-        weatherRepository.getWeatherData(location) { data, exception ->
+
+        //TODO не понятно что делать с данным handler
+        /*weatherRepository.getWeatherData(location) { data, exception ->
             
             Handler(Looper.getMainLooper()).post {
                 isLoading.value = false
@@ -88,29 +112,29 @@ class WeatherViewModel : ViewModel() {
                     error.value = exception?.message ?: "Unknown error"
                 }
             }
-        }
+        }*/
     }
     
     fun searchWeatherByCity(city: String) {
         if (city.isBlank()) {
-            error.value = "City name cannot be empty"
+            _state.value = Error(message = "City name cannot be empty")
             return
         }
-        
-        isLoading.value = true
-        error.value = null
-        
-        
-        weatherRepository.getWeatherByCity(city) { data, exception ->
-            
-            isLoading.value = false
-            
-            if (data != null) {
-                weatherData.value = data
-                cityName.value = data.cityName
-                currentLocation.value = Location(0.0, 0.0, data.cityName)
-            } else {
-                error.value = exception?.message ?: "Unknown error"
+        viewModelScope.launch {
+            _state.value = Loading
+            when (val weatherResult = weatherRepository.getWeatherByCity(city)) {
+                is WeatherResult.Data -> {
+                    _state.value = Content(
+                        cityName = weatherResult.cityName,
+                        weather = weatherResult.weatherData,
+                        currentLocation = weatherResult.locationData
+                    )
+                }
+                is WeatherResult.Error -> {
+                    _state.value = Error(
+                        weatherResult.message
+                    )
+                }
             }
         }
     }

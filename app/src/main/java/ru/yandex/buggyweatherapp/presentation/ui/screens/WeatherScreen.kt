@@ -1,7 +1,6 @@
-package ru.yandex.buggyweatherapp.ui.screens
+package ru.yandex.buggyweatherapp.presentation.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -36,9 +35,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import ru.yandex.buggyweatherapp.model.WeatherData
+import ru.yandex.buggyweatherapp.domain.model.WeatherData
 import ru.yandex.buggyweatherapp.utils.WeatherIconMapper
-import ru.yandex.buggyweatherapp.viewmodel.WeatherViewModel
+import ru.yandex.buggyweatherapp.presentation.viewmodel.WeatherViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,8 +75,7 @@ fun WeatherScreen(viewModel: WeatherViewModel, modifier: Modifier = Modifier) {
             label = { Text("Search city") },
             modifier = Modifier.fillMaxWidth(),
             trailingIcon = {
-                IconButton(onClick = { 
-                    
+                IconButton(onClick = {
                     viewModel.searchWeatherByCity(searchText) 
                 }) {
                     Icon(Icons.Default.Search, contentDescription = "Search")
