@@ -18,6 +18,8 @@ import ru.yandex.buggyweatherapp.domain.model.WeatherData
 import ru.yandex.buggyweatherapp.data.repository.LocationRepositoryImpl
 import ru.yandex.buggyweatherapp.data.repository.WeatherRepositoryImpl
 import ru.yandex.buggyweatherapp.domain.model.WeatherResult
+import ru.yandex.buggyweatherapp.domain.repository.LocationRepository
+import ru.yandex.buggyweatherapp.domain.repository.WeatherRepository
 import ru.yandex.buggyweatherapp.presentation.model.Content
 import ru.yandex.buggyweatherapp.presentation.model.Error
 import ru.yandex.buggyweatherapp.presentation.model.Idle
@@ -27,22 +29,22 @@ import ru.yandex.buggyweatherapp.utils.ImageLoader
 import java.util.Timer
 import java.util.TimerTask
 
-class WeatherViewModel : ViewModel() {
-    
-    
-    private lateinit var activityContext: Context
-    
-    
+class WeatherViewModel(
+    private val locationRepository: LocationRepository,
+    private val weatherRepository: WeatherRepository
+) : ViewModel() {
+
+    /*
     private val weatherRepository = WeatherRepositoryImpl()
-    private val locationRepository by lazy { 
+    private val locationRepository by lazy {
         LocationRepositoryImpl(activityContext)
     }
+    */
 
     private val _state = MutableStateFlow<Result>(Idle)
     val weatherState = _state.asStateFlow()
 
     val weatherData = MutableLiveData<WeatherData>()
-    val currentLocation = MutableLiveData<Location>()
     val isLoading = MutableLiveData<Boolean>()
     val error = MutableLiveData<String>()
     val cityName = MutableLiveData<String>()
@@ -56,7 +58,6 @@ class WeatherViewModel : ViewModel() {
     
     
     fun initialize(context: Context) {
-        this.activityContext = context
         fetchCurrentLocationWeather()
         
         //
@@ -67,27 +68,26 @@ class WeatherViewModel : ViewModel() {
     fun fetchCurrentLocationWeather() {
         _state.value = Loading
         
-        locationRepository.getCurrentLocation { location ->
-            location?.let { location ->
-                currentLocation.value = location
+        viewModelScope.launch {
+            locationRepository.getCurrentLocation { location ->
+                location?.let { location ->
+                    val cityNameFromLocation = locationRepository.getCityNameFromLocation(location)
+                    cityName.value = cityNameFromLocation ?: ""
 
+                    getWeatherForLocation(location)
+                    /*_state.update {  }
+                    if (weatherState !is Content) {
+                        _state.value = Content(
 
-                val cityNameFromLocation = locationRepository.getCityNameFromLocation(location)
-                cityName.value = cityNameFromLocation ?: ""
+                        )
+                    } else {
+                        _state.update {
 
-                getWeatherForLocation(location)
-                _state.update {  }
-                if (weatherState !is Content) {
-                    _state.value = Content(
-
-                    )
-                } else {
-                    _state.update {
-
-                    }
+                        }
+                    }*/
+                } ?: run {
+                    _state.value = Error(message = "Unable to get current location")
                 }
-            } ?: run {
-                _state.value = Error(message = "Unable to get current location")
             }
         }
     }
@@ -95,24 +95,8 @@ class WeatherViewModel : ViewModel() {
     fun getWeatherForLocation(location: Location) {
         viewModelScope.launch {
             _state.value = Loading
-            val weatherData = weatherRepository.getWeatherData(location)
+            handlerWeatherResult(weatherRepository.getWeatherData(location))
         }
-        isLoading.value = true
-        error.value = null
-
-        //TODO не понятно что делать с данным handler
-        /*weatherRepository.getWeatherData(location) { data, exception ->
-            
-            Handler(Looper.getMainLooper()).post {
-                isLoading.value = false
-                
-                if (data != null) {
-                    weatherData.value = data
-                } else {
-                    error.value = exception?.message ?: "Unknown error"
-                }
-            }
-        }*/
     }
     
     fun searchWeatherByCity(city: String) {
@@ -122,19 +106,23 @@ class WeatherViewModel : ViewModel() {
         }
         viewModelScope.launch {
             _state.value = Loading
-            when (val weatherResult = weatherRepository.getWeatherByCity(city)) {
-                is WeatherResult.Data -> {
-                    _state.value = Content(
-                        cityName = weatherResult.cityName,
-                        weather = weatherResult.weatherData,
-                        currentLocation = weatherResult.locationData
-                    )
-                }
-                is WeatherResult.Error -> {
-                    _state.value = Error(
-                        weatherResult.message
-                    )
-                }
+            handlerWeatherResult(weatherRepository.getWeatherByCity(city))
+        }
+    }
+
+    private fun handlerWeatherResult(weatherResult: WeatherResult) {
+
+        when (weatherResult) {
+            is WeatherResult.Data -> {
+                _state.value = Content(
+                    cityName = weatherResult.cityName,
+                    weather = weatherResult.weatherData,
+                )
+            }
+            is WeatherResult.Error -> {
+                _state.value = Error(
+                    weatherResult.message
+                )
             }
         }
     }
@@ -157,9 +145,9 @@ class WeatherViewModel : ViewModel() {
         refreshTimer = Timer()
         refreshTimer?.scheduleAtFixedRate(object : TimerTask() {
             override fun run() {
-                currentLocation.value?.let { location ->
+                /*currentLocation.value?.let { location ->
                     getWeatherForLocation(location)
-                }
+                }*/
             }
         }, 60000, 60000)
     }

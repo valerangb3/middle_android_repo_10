@@ -9,6 +9,6 @@ class Error(val message: String): Result
 object Idle : Result
 data class Content(
     val weather: WeatherData,
-    val currentLocation: Location,
+    val currentLocation: Location? = null,
     val cityName: String,
 ): Result

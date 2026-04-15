@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 class Wind(
     val speed: Double,
     val deg: Int,
-    val gust: Double
+    val gust: Double? = null
 )

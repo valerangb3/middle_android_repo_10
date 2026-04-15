@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 
-    kotlin("plugin.serialization") version "1.8.0"
+    kotlin("plugin.serialization") version "2.0.0"
 }
 
 android {
@@ -72,6 +72,7 @@ dependencies {
     
     // Location
     implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.0")
     
     // Coil image loading
     implementation("io.coil-kt:coil-compose:2.5.0")
