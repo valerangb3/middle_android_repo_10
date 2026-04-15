@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 
+    id("kotlin-kapt")
     kotlin("plugin.serialization") version "2.0.0"
 }
 
@@ -76,6 +77,10 @@ dependencies {
     
     // Coil image loading
     implementation("io.coil-kt:coil-compose:2.5.0")
+
+    //di
+    implementation("com.google.dagger:dagger:2.59.2")
+    kapt("com.google.dagger:dagger-compiler:2.59.2")
     
     // Testing
     testImplementation(libs.junit)

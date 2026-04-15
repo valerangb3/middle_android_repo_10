@@ -35,7 +35,7 @@ class LocationRepositoryImpl(
     
     private lateinit var locationCallback: LocationCallback
 
-    override suspend fun getCurrentLocation(callback: (Location?) -> Unit): LocationResultModel {
+    override suspend fun getCurrentLocation(): LocationResultModel {
         return withContext(dispatcher) {
             try {
                 //locationCallback = callback

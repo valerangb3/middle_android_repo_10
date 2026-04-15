@@ -3,6 +3,7 @@ package ru.yandex.buggyweatherapp.presentation
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -35,24 +36,26 @@ class MainActivity : ComponentActivity() {
                 
             }
             else -> {
-                
+                Toast.makeText(
+                    this,
+                    "Для работы приложения необходимо разрешение на местоположение ",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
     }
-    
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        
+
+    private fun checkLocationPermissionRequest() {
         val hasFineLocation = ContextCompat.checkSelfPermission(
             this,
             Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
-        
+
         val hasCoarseLocation = ContextCompat.checkSelfPermission(
             this,
             Manifest.permission.ACCESS_COARSE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
-        
+
         if (!hasFineLocation && !hasCoarseLocation) {
             locationPermissionRequest.launch(
                 arrayOf(
@@ -61,6 +64,12 @@ class MainActivity : ComponentActivity() {
                 )
             )
         }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        checkLocationPermissionRequest()
         
         enableEdgeToEdge()
         val weatherViewModel = WeatherViewModel(
