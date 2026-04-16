@@ -7,7 +7,7 @@ import ru.yandex.buggyweatherapp.presentation.MainActivity
 import javax.inject.Singleton
 
 @Singleton
-@Component(modules = [WeatherModule::class])
+@Component(modules = [WeatherModule::class, ViewModelBuilderModule::class])
 interface WeatherComponent {
 
     fun inject(activity: MainActivity)

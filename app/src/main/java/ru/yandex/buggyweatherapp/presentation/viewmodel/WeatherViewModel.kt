@@ -1,5 +1,6 @@
 package ru.yandex.buggyweatherapp.presentation.viewmodel
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import ru.yandex.buggyweatherapp.R
 import ru.yandex.buggyweatherapp.domain.model.Location
 import ru.yandex.buggyweatherapp.domain.model.LocationResult
 import ru.yandex.buggyweatherapp.domain.model.WeatherResult
@@ -30,7 +32,8 @@ import javax.inject.Singleton
 @Singleton
 class WeatherViewModel @Inject constructor(
     private val locationRepository: LocationRepository,
-    private val weatherRepository: WeatherRepository
+    private val weatherRepository: WeatherRepository,
+    private val appContext: Context,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<Result>(Idle)
@@ -48,7 +51,7 @@ class WeatherViewModel @Inject constructor(
         viewModelScope.launch {
             when (val locationResult = locationRepository.getCurrentLocation()) {
                 is LocationResult.Error -> {
-                    _state.value = Error(message = "Unable to get current location")
+                    _state.value = Error(message = appContext.getString(R.string.location_error))
                 }
                 is LocationResult.Data -> {
                     //TODO - для чего cityNameFromLocation?
@@ -70,7 +73,7 @@ class WeatherViewModel @Inject constructor(
     
     fun searchWeatherByCity(city: String) {
         if (city.isBlank()) {
-            _state.value = Error(message = "City name cannot be empty")
+            _state.value = Error(message = appContext.getString(R.string.city_cant_be_empty))
             return
         }
         weatherJob?.cancel()
@@ -97,17 +100,10 @@ class WeatherViewModel @Inject constructor(
         }
     }
     
-    
-    fun formatTemperature(temp: Double): String {
-        return "${temp.toInt()}°C"
-    }
-    
-    
     private fun startAutoRefresh() {
         refreshJob?.cancel()
         refreshJob = viewModelScope.launch {
             while (isActive) {
-                Log.d("startAutoRefresh", "startAutoRefresh")
                 delay(REFRESH_DELAY)
                 val result = weatherState.value
                 if (result is Content) {

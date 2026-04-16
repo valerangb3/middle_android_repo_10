@@ -34,14 +34,12 @@ class LocationRepositoryImpl @Inject constructor(
     
     
     private var currentLocation: Location? = null
-    
-    
+
     private lateinit var locationCallback: LocationCallback
 
     override suspend fun getCurrentLocation(): LocationResultModel {
         return withContext(dispatcher) {
             try {
-                //locationCallback = callback
                 var location = fusedLocationClient.lastLocation.await()
                 if (location != null) {
                     LocationResultModel.Data(Location(
@@ -57,7 +55,6 @@ class LocationRepositoryImpl @Inject constructor(
                         latitude = location.latitude,
                         longitude = location.longitude
                     ))
-                    //requestLocationUpdates(callback)
                 }
             } catch (e: SecurityException) {
                 Log.e("LocationRepository", "Location permission not granted", e)
@@ -82,7 +79,6 @@ class LocationRepositoryImpl @Inject constructor(
                             longitude = location.longitude
                         )
                         currentLocation = userLocation
-                        //callback(userLocation)
                         stopLocationUpdates()
                     }
                 }
@@ -103,7 +99,7 @@ class LocationRepositoryImpl @Inject constructor(
         try {
             
             val geocoder = Geocoder(context, Locale.getDefault())
-            
+
             @Suppress("DEPRECATION")
             val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
             
