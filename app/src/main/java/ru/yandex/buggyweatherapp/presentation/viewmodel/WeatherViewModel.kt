@@ -1,10 +1,6 @@
 package ru.yandex.buggyweatherapp.presentation.viewmodel
 
-import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
@@ -18,9 +14,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import ru.yandex.buggyweatherapp.domain.model.Location
-import ru.yandex.buggyweatherapp.domain.model.WeatherData
-import ru.yandex.buggyweatherapp.data.repository.LocationRepositoryImpl
-import ru.yandex.buggyweatherapp.data.repository.WeatherRepositoryImpl
 import ru.yandex.buggyweatherapp.domain.model.LocationResult
 import ru.yandex.buggyweatherapp.domain.model.WeatherResult
 import ru.yandex.buggyweatherapp.domain.repository.LocationRepository
@@ -31,19 +24,17 @@ import ru.yandex.buggyweatherapp.presentation.model.Idle
 import ru.yandex.buggyweatherapp.presentation.model.Loading
 import ru.yandex.buggyweatherapp.presentation.model.Result
 import ru.yandex.buggyweatherapp.utils.ImageLoader
-import java.util.Timer
-import java.util.TimerTask
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class WeatherViewModel(
+@Singleton
+class WeatherViewModel @Inject constructor(
     private val locationRepository: LocationRepository,
     private val weatherRepository: WeatherRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<Result>(Idle)
     val weatherState = _state.asStateFlow()
-
-    //TODO зачем зедсь свой scope?
-    private val coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var refreshJob: Job? = null
     private var weatherJob: Job? = null
     
@@ -109,14 +100,6 @@ class WeatherViewModel(
     
     fun formatTemperature(temp: Double): String {
         return "${temp.toInt()}°C"
-    }
-    
-    
-    fun loadWeatherIcon(iconCode: String) {
-        coroutineScope.launch {
-            val iconUrl = "https://openweathermap.org/img/wn/$iconCode@2x.png"
-            ImageLoader.loadImage(iconUrl)
-        }
     }
     
     

@@ -12,8 +12,11 @@ import ru.yandex.buggyweatherapp.data.api.dto.mapToWeatherData
 import ru.yandex.buggyweatherapp.domain.repository.WeatherRepository
 import ru.yandex.buggyweatherapp.domain.model.Location
 import ru.yandex.buggyweatherapp.domain.model.WeatherResult
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class WeatherRepositoryImpl(
+@Singleton
+class WeatherRepositoryImpl @Inject constructor(
     private val weatherApi: WeatherApiService,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : WeatherRepository {

@@ -20,8 +20,11 @@ import ru.yandex.buggyweatherapp.domain.repository.LocationRepository
 import ru.yandex.buggyweatherapp.domain.model.Location
 import ru.yandex.buggyweatherapp.utils.LocationTracker
 import java.util.Locale
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class LocationRepositoryImpl(
+@Singleton
+class LocationRepositoryImpl @Inject constructor(
     private val context: Context,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : LocationRepository {

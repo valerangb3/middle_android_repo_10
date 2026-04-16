@@ -16,14 +16,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
-import ru.yandex.buggyweatherapp.data.api.RetrofitInstance
-import ru.yandex.buggyweatherapp.data.repository.LocationRepositoryImpl
-import ru.yandex.buggyweatherapp.data.repository.WeatherRepositoryImpl
+import ru.yandex.buggyweatherapp.WeatherApplication
+import ru.yandex.buggyweatherapp.domain.repository.LocationRepository
+import ru.yandex.buggyweatherapp.domain.repository.WeatherRepository
 import ru.yandex.buggyweatherapp.presentation.ui.screens.WeatherScreen
 import ru.yandex.buggyweatherapp.presentation.ui.theme.BuggyWeatherAppTheme
 import ru.yandex.buggyweatherapp.presentation.viewmodel.WeatherViewModel
+import javax.inject.Inject
 
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var locationRepository: LocationRepository
+    @Inject
+    lateinit var weatherRepository: WeatherRepository
 
     private val locationPermissionRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -69,17 +75,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        //TODO мб проверку перекинуть в compose
         checkLocationPermissionRequest()
+
+        (applicationContext as WeatherApplication).appComponent.inject(this)
         
         enableEdgeToEdge()
         val weatherViewModel = WeatherViewModel(
-            weatherRepository = WeatherRepositoryImpl(
-                weatherApi = RetrofitInstance.weatherApi
-
-            ),
-            locationRepository = LocationRepositoryImpl(
-                this.application
-            )
+            weatherRepository = weatherRepository,
+            locationRepository = locationRepository
         )
         setContent {
             BuggyWeatherAppTheme {
