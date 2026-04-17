@@ -147,7 +147,13 @@ fun WeatherScreen(viewModel: WeatherViewModel, modifier: Modifier = Modifier) {
                         weather = (weatherState as Content).weather,
                         cityName = (weatherState as Content).cityName,
                         onFavoriteClick = { viewModel.toggleFavorite() },
-                        onRefreshClick = { viewModel.fetchCurrentLocationWeather() }
+                        onRefreshClick = {
+                            if (searchText.isNotEmpty()) {
+                                viewModel.searchWeatherByCity(searchText)
+                            } else {
+                                viewModel.fetchCurrentLocationWeather()
+                            }
+                        }
                     )
                 }
             }
