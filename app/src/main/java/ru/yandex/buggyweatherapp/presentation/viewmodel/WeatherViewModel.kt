@@ -54,9 +54,6 @@ class WeatherViewModel @Inject constructor(
                     _state.value = Error(message = appContext.getString(R.string.location_error))
                 }
                 is LocationResult.Data -> {
-                    //TODO - для чего cityNameFromLocation?
-                    val cityNameFromLocation = locationRepository
-                        .getCityNameFromLocation(locationResult.location)
                     getWeatherForLocation(locationResult.location)
                 }
             }

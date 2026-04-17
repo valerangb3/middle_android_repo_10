@@ -11,7 +11,6 @@ import android.util.Log
 import java.util.concurrent.CopyOnWriteArrayList
 
 class LocationTracker private constructor(
-    
     private val context: Context
 ) {
     
@@ -26,10 +25,8 @@ class LocationTracker private constructor(
         }
     }
     
-    
     private val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-    
-    
+
     private val listeners = CopyOnWriteArrayList<(ru.yandex.buggyweatherapp.domain.model.Location) -> Unit>()
     
     
@@ -40,7 +37,6 @@ class LocationTracker private constructor(
                 latitude = location.latitude,
                 longitude = location.longitude
             )
-            
             
             notifyListeners(newLocation)
         }
@@ -56,15 +52,12 @@ class LocationTracker private constructor(
     
     fun startTracking() {
         try {
-            
             locationManager.requestLocationUpdates(
                 LocationManager.GPS_PROVIDER,
                 5000, // 5 секунд
                 10f, // 10 метров
                 locationListener
             )
-            
-            
         } catch (e: SecurityException) {
             Log.e("LocationTracker", "Permission denied", e)
         } catch (e: Exception) {
@@ -85,6 +78,4 @@ class LocationTracker private constructor(
             }
         }
     }
-    
-    
 }

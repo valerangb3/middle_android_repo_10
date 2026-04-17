@@ -8,8 +8,6 @@ import ru.yandex.buggyweatherapp.utils.ImageLoader
 import ru.yandex.buggyweatherapp.utils.LocationTracker
 
 class WeatherApplication : Application() {
-    
-
     lateinit var appComponent: WeatherComponent
 
     companion object {
@@ -19,8 +17,7 @@ class WeatherApplication : Application() {
     
     override fun onCreate() {
         super.onCreate()
-        
-        
+
         appContext = this
         appComponent = DaggerWeatherComponent.builder()
             .context(appContext = appContext)

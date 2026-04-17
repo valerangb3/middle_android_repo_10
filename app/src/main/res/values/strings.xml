@@ -21,4 +21,5 @@
     <string name="sunrise">Sunrise: %1$s</string>
     <string name="location_permission">Для работы приложения необходимо разрешение на местоположение</string>
     <string name="city_cant_be_empty">City name cannot be empty</string>
+    <string name="retry">Retry</string>
 </resources>

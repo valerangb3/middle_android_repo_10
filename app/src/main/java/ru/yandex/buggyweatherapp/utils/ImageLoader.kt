@@ -13,10 +13,7 @@ object ImageLoader {
     
     private lateinit var appContext: Context
     
-    
     private val imageCache = ConcurrentHashMap<String, Bitmap>()
-    
-    
     private val viewReferences = HashMap<String, ImageView>()
     
     fun initialize(context: Context) {
@@ -29,7 +26,6 @@ object ImageLoader {
             imageCache[url]
         } else {
             try {
-                
                 val bitmap = withContext(Dispatchers.IO) {
                     val connection = URL(url).openConnection()
                     connection.connectTimeout = 5000
@@ -85,8 +81,7 @@ object ImageLoader {
             
             Thread {
                 val bitmap = loadImageSync(url)
-                
-                
+
                 imageView.post {
                     imageView.setImageBitmap(bitmap)
                 }
